@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>bernard_actuator_if</name>
+  <name>bernard_hw_if</name>
   <version>0.0.0</version>
-  <description>Bernard actuator interface for controlling and monitoring MD80 drives via the CANdle interface.</description>
+  <description>Bernard hardware interface for controlling and monitoring MD80 drives via the CANdle interface.</description>
   <maintainer email="blazejszargut@gmail.com">Błażej Szargut</maintainer>
   <license>BSD-3-Clause</license>
 
