@@ -19,18 +19,6 @@ ActuatorStatePublisher::ActuatorStatePublisher(std::shared_ptr<mab::Candle> cand
 	state_publisher_ = this->create_publisher<sensor_msgs::msg::JointState>("joint_states", 10);
 	temp_publisher_ = this->create_publisher<std_msgs::msg::UInt8MultiArray>("joint_temperatures", 10);
 
-	auto ids = candle_->ping();
-	if (ids.size() == 0)
-	{
-		RCLCPP_ERROR(this->get_logger(), "No actuators found on CAN bus!");
-		rclcpp::shutdown();
-		return;
-	}
-	for (auto &id : ids)
-	{
-		RCLCPP_INFO(this->get_logger(), "Found drive %s, (ID: %d)", JOINT_MAP.at(id).c_str(), id);
-	}
-
 	state_timer_ = this->create_wall_timer(
 		10ms, std::bind(&ActuatorStatePublisher::publish_joint_states, this));
 	temp_timer_ = this->create_wall_timer(
@@ -87,17 +75,9 @@ ActuatorCommandSubscriber::ActuatorCommandSubscriber(std::shared_ptr<mab::Candle
         "joint_commands", 10,
         std::bind(&ActuatorCommandSubscriber::command_callback, this, std::placeholders::_1));
     
-    auto ids = candle_->ping();
-    if (ids.size() == 0)
+    for (auto &md : candle_->md80s)
     {
-        RCLCPP_ERROR(this->get_logger(), "No actuators found on CAN bus!");
-        rclcpp::shutdown();
-        return;
-    }
-    for (auto &id : ids)
-    {
-        RCLCPP_INFO(this->get_logger(), "Found drive %s, (ID: %d)", JOINT_MAP.at(id).c_str(), id);
-        candle_->controlMd80Mode(id, mab::Md80Mode_E::RAW_TORQUE);
+        candle_->controlMd80Mode(md, mab::Md80Mode_E::RAW_TORQUE);
     }
 
     RCLCPP_INFO(this->get_logger(), "ActuatorCommandSubscriber initialized");

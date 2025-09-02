@@ -18,17 +18,14 @@ int main(int argc, char *argv[])
 	for (auto &id : ids)
 	{
 		candle->addMd80(id);
+		RCLCPP_INFO(rclcpp::get_logger("actuator_state_publisher"), "Found drive %s, (ID: %d)", JOINT_MAP.at(id).c_str(), id);
 	}
 
 	auto state_pub = std::make_shared<ActuatorStatePublisher>(candle);
-	auto cmd_sub = std::make_shared<ActuatorCommandSubscriber>(candle);
 
 	candle->begin();
 
-	rclcpp::executors::MultiThreadedExecutor exec;
-	exec.add_node(state_pub);
-	exec.add_node(cmd_sub);
-	exec.spin();
+	rclcpp::spin(state_pub);
 
 	candle->end();
 	rclcpp::shutdown();

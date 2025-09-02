@@ -19,6 +19,7 @@ set(CANDLE_BUILD_STATIC ON)
 set(CANDLE_OMIT_EXAMPLES ON)
 add_subdirectory(candle)
 
+# Actuator state publisher
 add_executable(actuator_state_publisher
  src/actuator_state_publisher.cpp
  src/actuators.cpp
@@ -27,8 +28,18 @@ ament_target_dependencies(actuator_state_publisher rclcpp std_msgs sensor_msgs)
 target_link_libraries(actuator_state_publisher candle)
 target_include_directories(actuator_state_publisher PUBLIC ./candle/include ${CMAKE_SOURCE_DIR}/include)
 
+# Actuator full interface
+add_executable(actuator_if
+ src/actuator_if.cpp
+ src/actuators.cpp
+)
+ament_target_dependencies(actuator_if rclcpp std_msgs sensor_msgs)
+target_link_libraries(actuator_if candle)
+target_include_directories(actuator_if PUBLIC ./candle/include ${CMAKE_SOURCE_DIR}/include)
+
 install(TARGETS
   actuator_state_publisher
+  actuator_if
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
