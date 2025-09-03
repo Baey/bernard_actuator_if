@@ -39,7 +39,7 @@ target_include_directories(actuator_state_publisher PUBLIC ./candle/include ${CM
 
 install(TARGETS
   actuator_state_publisher
-  actuator_if
+  # actuator_if
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
