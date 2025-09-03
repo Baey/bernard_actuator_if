@@ -62,6 +62,7 @@ void ActuatorStatePublisher::publish_joint_temperatures()
 	for (auto &md80 : candle_->md80s)
 	{
 		mab::regRead_st readReg = md80.getReadReg();
+		candle_->readMd80Register(md80.getId(), mab::Md80Reg_E::mosfetTemperature, readReg.RO.mosfetTemperature);
 		msg.data.push_back(readReg.RO.mosfetTemperature);
 	}
 
