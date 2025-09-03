@@ -3,7 +3,7 @@
 #include <memory>
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
-#include "std_msgs/msg/u_int8_multi_array.hpp"
+// #include "std_msgs/msg/u_int8_multi_array.hpp"
 #include "std_msgs/msg/float32_multi_array.hpp"
 #include "candle.hpp"
 #include "bernard/config.hpp"
@@ -21,7 +21,7 @@ private:
 	rclcpp::TimerBase::SharedPtr state_timer_;
 	rclcpp::TimerBase::SharedPtr temp_timer_;
 	rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr state_publisher_;
-	rclcpp::Publisher<std_msgs::msg::UInt8MultiArray>::SharedPtr temp_publisher_;
+	rclcpp::Publisher<std_msgs::msg::Float32MultiArray>::SharedPtr temp_publisher_;
 	std::shared_ptr<mab::Candle> candle_;
 };
 
