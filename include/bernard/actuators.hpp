@@ -3,7 +3,6 @@
 #include <memory>
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
-// #include "std_msgs/msg/u_int8_multi_array.hpp"
 #include "std_msgs/msg/float32_multi_array.hpp"
 #include "candle.hpp"
 #include "bernard/config.hpp"
