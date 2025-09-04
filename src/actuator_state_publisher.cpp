@@ -14,15 +14,23 @@ int main(int argc, char *argv[])
 	rclcpp::init(argc, argv);
 	auto candle = std::make_shared<mab::Candle>(mab::CAN_BAUD_8M, true);
 	auto ids = candle->ping();
-	for (auto &id : ids)
+	size_t i = 0;
+	while (i < ids.size())
 	{
-		candle->addMd80(id);
-		RCLCPP_INFO(rclcpp::get_logger("actuator_state_publisher"), "Found drive %s, (ID: %d)", JOINT_MAP.at(id).c_str(), id);
+		auto id = ids[i];
+		RCLCPP_INFO(rclcpp::get_logger("actuator_state_publisher"), "Adding drive %s, (ID: %d)", JOINT_MAP.at(id).c_str(), id);
+		bool success;
+		success = candle->addMd80(id);
+		if (!success) {
+			RCLCPP_ERROR(rclcpp::get_logger("actuator_state_publisher"), "Failed to add drive. Retrying...");
+		} else {
+			i++;
+		}
 	}
 
-	candle->begin();
-
 	auto state_pub = std::make_shared<ActuatorStatePublisher>(candle);
+
+	candle->begin();
 
 	rclcpp::spin(state_pub);
 
