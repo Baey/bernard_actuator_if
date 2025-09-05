@@ -12,8 +12,8 @@
 
 using namespace std::chrono_literals;
 
-ActuatorStatePublisher::ActuatorStatePublisher(std::shared_ptr<mab::Candle> candle)
-	: Node("actuator_state_publisher"), count_(0), candle_(candle)
+ActuatorStatePublisher::ActuatorStatePublisher(mab::Candle* candle, std::vector<mab::MD> mds)
+	: Node("actuator_state_publisher"), count_(0), candle_(candle), mds_(mds)
 {
 	state_publisher_ = this->create_publisher<sensor_msgs::msg::JointState>("joint_states", 10);
 	temp_publisher_ = this->create_publisher<std_msgs::msg::Float32MultiArray>("driver_temperatures", 10);
@@ -22,27 +22,23 @@ ActuatorStatePublisher::ActuatorStatePublisher(std::shared_ptr<mab::Candle> cand
 		10ms, std::bind(&ActuatorStatePublisher::publish_joint_states, this));
 	temp_timer_ = this->create_wall_timer(
 		5000ms, std::bind(&ActuatorStatePublisher::publish_joint_temperatures, this));
+
+	RCLCPP_INFO(this->get_logger(), "ActuatorStatePublisher initialized");
 }
 
 void ActuatorStatePublisher::publish_joint_states()
 {
-	if (candle_->md80s.empty())
-	{
-		RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 2000,
-							 "No actuators detected.");
-		return;
-	}
 
 	sensor_msgs::msg::JointState msg;
 	msg.header.stamp = this->now();
 
-	for (auto &md80 : candle_->md80s)
+	for (auto &md : mds_)
 	{
 		// Joints states
-		msg.name.push_back(JOINT_MAP.at(md80.getId()));
-		msg.position.push_back(md80.getPosition());
-		msg.velocity.push_back(md80.getVelocity());
-		msg.effort.push_back(md80.getTorque());
+		msg.name.push_back(JOINT_MAP.at(md.m_canId));
+		msg.position.push_back(md.getPosition().first);
+		msg.velocity.push_back(md.getVelocity().first);
+		msg.effort.push_back(md.getTorque().first);
 	}
 
 	state_publisher_->publish(msg);
@@ -50,60 +46,34 @@ void ActuatorStatePublisher::publish_joint_states()
 
 void ActuatorStatePublisher::publish_joint_temperatures()
 {
-	if (candle_->md80s.empty())
-	{
-		RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 2000,
-							 "No actuators detected.");
-		return;
-	}
-
+	mab::MDRegisters_S registerBuffer;
 	std_msgs::msg::Float32MultiArray msg;
 
-	for (auto &md80 : candle_->md80s)
+	for (auto &md : mds_)
 	{
-		mab::regRead_st readReg = md80.getReadReg();
-		candle_->readMd80Register(md80.getId(), mab::Md80Reg_E::mosfetTemperature, readReg.RO.mosfetTemperature);
-		msg.data.push_back(readReg.RO.mosfetTemperature);
+		md.readRegisters(registerBuffer.mosfetTemperature);
+		msg.data.push_back(registerBuffer.mosfetTemperature.value);
 	}
 
 	temp_publisher_->publish(msg);
 }
 
-ActuatorCommandSubscriber::ActuatorCommandSubscriber(std::shared_ptr<mab::Candle> candle)
-    : Node("actuator_command_subscriber"), candle_(candle)
+ActuatorCommandSubscriber::ActuatorCommandSubscriber(mab::Candle* candle, std::vector<mab::MD> mds)
+    : Node("actuator_command_subscriber"), candle_(candle), mds_(mds)
 {
     cmd_subscriber_ = this->create_subscription<std_msgs::msg::Float32MultiArray>(
         "joint_commands", 10,
         std::bind(&ActuatorCommandSubscriber::command_callback, this, std::placeholders::_1));
-    
-    for (auto &md : candle_->md80s)
-    {
-        candle_->controlMd80Mode(md, mab::Md80Mode_E::RAW_TORQUE);
-    }
 
     RCLCPP_INFO(this->get_logger(), "ActuatorCommandSubscriber initialized");
 }
 
 void ActuatorCommandSubscriber::command_callback(const std_msgs::msg::Float32MultiArray::SharedPtr msg)
 {
-    if (candle_->md80s.empty())
-    {
-        RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 2000,
-                             "No actuators detected.");
-        return;
-    }
-
-    if (msg->data.size() != candle_->md80s.size())
-    {
-        RCLCPP_ERROR(this->get_logger(),
-                     "Received %zu commands, but bernard has %zu actuators!",
-                     msg->data.size(), candle_->md80s.size());
-        return;
-    }
 
     for (size_t i = 0; i < msg->data.size(); i++)
     {
         float target = msg->data[i];
-        candle_->md80s[i].setTargetTorque(target);
+        mds_[i].setTargetTorque(target);
     }
 }

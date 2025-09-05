@@ -15,9 +15,8 @@ find_package(rosidl_default_generators REQUIRED)
 
 set(CMAKE_INSTALL_RPATH $ORIGIN)  # sets proper runtime paths for exec to link .so properly
 
-set(CANDLE_BUILD_STATIC ON)
-set(CANDLE_OMIT_EXAMPLES ON)
-add_subdirectory(candle)
+set(MAKE_TESTS OFF)
+add_subdirectory(CANdle-SDK)
 
 # Actuator state publisher
 add_executable(actuator_state_publisher
@@ -26,7 +25,7 @@ add_executable(actuator_state_publisher
 )
 ament_target_dependencies(actuator_state_publisher rclcpp std_msgs sensor_msgs)
 target_link_libraries(actuator_state_publisher candle)
-target_include_directories(actuator_state_publisher PUBLIC ./candle/include ${CMAKE_SOURCE_DIR}/include)
+target_include_directories(actuator_state_publisher PUBLIC ./CANdle-SDK/candlelib/include ${CMAKE_SOURCE_DIR}/include)
 
 # Actuator full interface
 # add_executable(actuator_if

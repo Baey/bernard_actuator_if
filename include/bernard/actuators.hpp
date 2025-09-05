@@ -5,12 +5,14 @@
 #include "sensor_msgs/msg/joint_state.hpp"
 #include "std_msgs/msg/float32_multi_array.hpp"
 #include "candle.hpp"
+#include "MD.hpp"
+
 #include "bernard/config.hpp"
 
 class ActuatorStatePublisher : public rclcpp::Node
 {
 public:
-	ActuatorStatePublisher(std::shared_ptr<mab::Candle> candle);
+	ActuatorStatePublisher(mab::Candle* candle, std::vector<mab::MD> mds);
 
 private:
 	void publish_joint_states();
@@ -21,17 +23,19 @@ private:
 	rclcpp::TimerBase::SharedPtr temp_timer_;
 	rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr state_publisher_;
 	rclcpp::Publisher<std_msgs::msg::Float32MultiArray>::SharedPtr temp_publisher_;
-	std::shared_ptr<mab::Candle> candle_;
+	mab::Candle* candle_;
+	std::vector<mab::MD> mds_;
 };
 
 class ActuatorCommandSubscriber : public rclcpp::Node
 {
 public:
-	ActuatorCommandSubscriber(std::shared_ptr<mab::Candle> candle);
+	ActuatorCommandSubscriber(mab::Candle* candle, std::vector<mab::MD> mds);
 
 private:
 	void command_callback(const std_msgs::msg::Float32MultiArray::SharedPtr msg);
 
 	rclcpp::Subscription<std_msgs::msg::Float32MultiArray>::SharedPtr cmd_subscriber_;
-    std::shared_ptr<mab::Candle> candle_;
+    mab::Candle* candle_;
+	std::vector<mab::MD> mds_;
 };
