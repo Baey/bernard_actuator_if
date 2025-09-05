@@ -35,6 +35,8 @@ int main(int argc, char *argv[])
 
 	auto state_pub = std::make_shared<ActuatorStatePublisher>(candle, mds);
 
+	candle->begin();
+
 	rclcpp::spin(state_pub);
 
 	for (auto &md : mds)
